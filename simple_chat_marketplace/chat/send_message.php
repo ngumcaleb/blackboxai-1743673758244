@@ -1,32 +1,43 @@
 <?php
+header('Content-Type: application/json');
 require_once '../includes/config.php';
 require_once '../includes/auth.php';
 
 if (!isLoggedIn()) {
-    http_response_code(401);
-    exit(json_encode(['error' => 'Unauthorized']));
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit(json_encode(['error' => 'Method not allowed']));
+    echo json_encode(['error' => 'Not authenticated']);
+    exit;
 }
 
 $receiverId = filter_input(INPUT_POST, 'receiver_id', FILTER_VALIDATE_INT);
 $message = filter_input(INPUT_POST, 'message', FILTER_SANITIZE_STRING);
 
-if (!$receiverId || !$message) {
-    http_response_code(400);
-    exit(json_encode(['error' => 'Invalid input']));
+if (!$receiverId || empty($message)) {
+    echo json_encode(['error' => 'Invalid input']);
+    exit;
 }
 
 try {
-    $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content) VALUES (?, ?, ?)");
+    // Insert message with 'sent' status
+    $stmt = $pdo->prepare("INSERT INTO messages (sender_id, receiver_id, content, status) VALUES (?, ?, ?, 'sent')");
     $stmt->execute([$_SESSION['user_id'], $receiverId, $message]);
     
-    echo json_encode(['success' => true]);
+    // Get the full message details with sender info
+    $messageId = $pdo->lastInsertId();
+    $stmt = $pdo->prepare("SELECT m.*, u.username, u.profile_image 
+                          FROM messages m 
+                          JOIN users u ON m.sender_id = u.id 
+                          WHERE m.id = ?");
+    $stmt->execute([$messageId]);
+    $newMessage = $stmt->fetch();
+    
+    // Format the created_at time
+    $newMessage['time'] = date('h:i A', strtotime($newMessage['created_at']));
+    
+    echo json_encode([
+        'success' => true,
+        'message' => $newMessage
+    ]);
 } catch (PDOException $e) {
-    http_response_code(500);
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }
 ?>
