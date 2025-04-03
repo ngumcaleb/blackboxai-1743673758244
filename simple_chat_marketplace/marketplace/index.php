@@ -76,8 +76,8 @@ $products = $stmt->fetchAll();
                     <p class="text-gray-700 mt-2 text-sm"><?= htmlspecialchars($product['description']) ?></p>
                     <div class="mt-4 flex justify-between items-center">
                         <a href="view_product.php?id=<?= $product['id'] ?>" 
-                           class="text-blue-600 hover:underline text-sm">
-                            View Details
+                           class="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 text-sm transition">
+                            <i class="fas fa-eye mr-1"></i> View Details
                         </a>
                         <a href="../chat/chat.php?contact=<?= $product['username'] ?>" 
                            class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm hover:bg-gray-200">
