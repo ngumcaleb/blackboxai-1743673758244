@@ -1,0 +1,17 @@
+{
+  "name": "simple_chat_marketplace",
+  "version": "1.0.0",
+  "description": "A full-stack web application combining real-time chat functionality with a marketplace, built with HTML, Tailwind CSS, JavaScript, PHP, and MySQL.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.1"
+  }
+}
