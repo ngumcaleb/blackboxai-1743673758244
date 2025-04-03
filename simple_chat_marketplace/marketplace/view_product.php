@@ -52,22 +52,7 @@ if (!$product) {
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Header -->
-    <nav class="bg-white shadow-lg">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="../index.php" class="text-xl font-bold text-green-600 flex items-center">
-                <i class="fas fa-shopping-bag mr-2"></i> ChatMarket
-            </a>
-            <div class="flex items-center space-x-4">
-                <a href="../chat/chat.php" class="text-gray-600 hover:text-green-600">
-                    <i class="fas fa-comment-dots text-xl"></i>
-                </a>
-                <a href="../user/profile.php" class="text-gray-600 hover:text-green-600">
-                    <i class="fas fa-user text-xl"></i>
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include '../includes/header.php'; ?>
 
     <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
@@ -112,13 +97,25 @@ if (!$product) {
 
                 <!-- Action Buttons -->
                 <div class="mt-8 flex flex-col space-y-3">
-                    <a href="../chat/chat.php?contact=<?= $product['seller_id'] ?>" 
-                       class="bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
-                        <i class="fas fa-comment-dots mr-2"></i> Message Seller
-                    </a>
-                    <button class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
-                        <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
-                    </button>
+                    <?php if ($product['seller_id'] == $_SESSION['user_id']): ?>
+                        <a href="edit_product.php?id=<?= $product['id'] ?>" 
+                           class="bg-yellow-500 text-white py-3 px-6 rounded-lg hover:bg-yellow-600 transition flex items-center justify-center">
+                            <i class="fas fa-edit mr-2"></i> Edit Product
+                        </a>
+                        <a href="delete_product.php?id=<?= $product['id'] ?>" 
+                           class="bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition flex items-center justify-center"
+                           onclick="return confirm('Are you sure you want to delete this product?')">
+                            <i class="fas fa-trash mr-2"></i> Delete Product
+                        </a>
+                    <?php else: ?>
+                        <a href="../chat/chat.php?contact=<?= $product['seller_id'] ?>" 
+                           class="bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition flex items-center justify-center">
+                            <i class="fas fa-comment-dots mr-2"></i> Message Seller
+                        </a>
+                        <button class="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                        </button>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
