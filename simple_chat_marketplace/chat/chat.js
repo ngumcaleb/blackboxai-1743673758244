@@ -1,84 +1,91 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Mobile view toggle
-    const mobileBackBtn = document.createElement('button');
-    mobileBackBtn.id = 'mobile-back-btn';
-    mobileBackBtn.className = 'md:hidden p-2 text-white mr-2';
-    mobileBackBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
-    document.getElementById('chat-area').prepend(mobileBackBtn);
+// Chat functionality using jQuery
+$(function() {
+    // Message display functions
+    function scrollToBottom() {
+        const container = $('#messages-container');
+        container.scrollTop(container[0].scrollHeight);
+    }
 
-    mobileBackBtn.addEventListener('click', function() {
-        document.getElementById('contacts-list').classList.remove('hidden');
-        document.getElementById('chat-area').classList.add('hidden');
+    function displayMessage(message) {
+        const isCurrentUser = message.sender_id == CURRENT_USER_ID;
+        const messageClass = isCurrentUser ? 
+            'bg-blue-500 text-white text-blue-100' : 
+            'bg-white shadow text-gray-500';
+        
+        const messageHtml = `
+        <div class="flex ${isCurrentUser ? 'justify-end' : 'justify-start'} mb-4">
+            <div class="max-w-xs lg:max-w-md ${messageClass.split(' ')[0]} rounded-lg py-2 px-4">
+                <p>${message.content}</p>
+                <div class="text-right text-xs ${messageClass.split(' ')[2]} mt-1">
+                    ${message.time}
+                    ${isCurrentUser ? `
+                    <span class="ml-1">
+                        <i class="fas fa-check${message.status === 'delivered' ? '-double' : ''}"></i>
+                    </span>` : ''}
+                </div>
+            </div>
+        </div>`;
+        
+        $('#messages-container').append(messageHtml);
+        scrollToBottom();
+    }
+
+    // Contact selection handler
+    $('.contact-item').click(function() {
+        $('.contact-item').removeClass('active');
+        $(this).addClass('active');
+        
+        const contactId = $(this).data('userid');
+        const contactName = $(this).find('h3').text();
+        
+        // Update chat header
+        $('#chat-contact-name').text(contactName);
+        $('#chat-contact-initial').text(contactName.charAt(0).toUpperCase());
+        
+        // Mobile view handling
+        if(window.innerWidth < 768) {
+            $('#contacts-list').hide();
+            $('#chat-area').show();
+        }
+        
+        loadMessages(contactId);
     });
 
-    // Contact selection
-    document.querySelectorAll('.contact-item').forEach(item => {
-        item.addEventListener('click', function() {
-            const userId = this.dataset.userid;
-            const username = this.querySelector('h3').textContent;
-            const initial = username.charAt(0).toUpperCase();
-            
-            // Update chat header
-            document.getElementById('chat-contact-name').textContent = username;
-            document.getElementById('chat-contact-initial').textContent = initial;
-            
-            // Toggle views on mobile
-            if(window.innerWidth < 768) {
-                document.getElementById('contacts-list').classList.add('hidden');
-                document.getElementById('chat-area').classList.remove('hidden');
-            }
-            
-            // Load messages
-            loadMessages(userId);
-        });
-    });
+    // Message loading
+    function loadMessages(contactId) {
+        $.get('fetch_messages.php', {contact_id: contactId})
+            .done(html => {
+                $('#messages-container').html(html);
+                scrollToBottom();
+            })
+            .fail(err => console.error('Error loading messages:', err));
+    }
 
     // Message sending
-    document.getElementById('send-button').addEventListener('click', sendMessage);
-    document.getElementById('message-input').addEventListener('keypress', function(e) {
-        if(e.key === 'Enter') sendMessage();
+    $('#send-button, #message-input').on('click keypress', function(e) {
+        if(e.type === 'click' || (e.type === 'keypress' && e.which === 13)) {
+            const message = $('#message-input').val().trim();
+            const contactId = $('.contact-item.active').data('userid');
+            
+            if(message && contactId) {
+                $.post('send_message.php', {
+                    receiver_id: contactId, 
+                    message: message
+                })
+                .done(res => {
+                    if(res.success) {
+                        $('#message-input').val('');
+                        displayMessage(res.message);
+                    }
+                })
+                .fail(err => console.error('Error sending message:', err));
+            }
+        }
     });
 
-    // Real-time polling
-    setInterval(pollMessages, 2000);
+    // Message polling
+    setInterval(() => {
+        const contactId = $('.contact-item.active').data('userid');
+        if(contactId) loadMessages(contactId);
+    }, 2000);
 });
-
-function loadMessages(contactId) {
-    fetch(`fetch_messages.php?contact_id=${contactId}`)
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('messages-container').innerHTML = data;
-            scrollToBottom();
-        });
-}
-
-function sendMessage() {
-    const contactId = document.querySelector('.contact-item.active')?.dataset.userid;
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value.trim();
-    
-    if(message && contactId) {
-        fetch('send_message.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `receiver_id=${contactId}&message=${encodeURIComponent(message)}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            messageInput.value = '';
-            loadMessages(contactId);
-        });
-    }
-}
-
-function pollMessages() {
-    const contactId = document.querySelector('.contact-item.active')?.dataset.userid;
-    if(contactId) loadMessages(contactId);
-}
-
-function scrollToBottom() {
-    const container = document.getElementById('messages-container');
-    container.scrollTop = container.scrollHeight;
-}
