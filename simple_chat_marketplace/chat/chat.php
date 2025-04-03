@@ -28,9 +28,17 @@ $contacts = $stmt->fetchAll();
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body class="bg-gray-100 h-screen">
+    <!-- Mobile Header (hidden on desktop) -->
+    <div class="md:hidden bg-green-600 text-white p-4 flex items-center">
+        <a href="../marketplace/index.php" class="text-white mr-4">
+            <i class="fas fa-store"></i>
+        </a>
+        <h1 class="text-xl font-bold">ChatMarket</h1>
+    </div>
+    
     <div class="flex h-full">
         <!-- Sidebar -->
-        <div class="w-1/4 bg-white border-r border-gray-200 flex flex-col">
+        <div class="w-full md:w-1/3 lg:w-1/4 bg-white border-r border-gray-200 flex flex-col">
             <!-- Header -->
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex items-center">
                 <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
@@ -50,10 +58,17 @@ $contacts = $stmt->fetchAll();
                 </div>
             </div>
 
+            <!-- Navigation Links -->
+            <div class="p-4 border-b border-gray-200 hidden md:block">
+                <a href="../marketplace/index.php" class="text-blue-600 hover:underline">
+                    <i class="fas fa-store mr-2"></i> Marketplace
+                </a>
+            </div>
+            
             <!-- Contacts List -->
             <div class="flex-1 overflow-y-auto">
                 <?php foreach ($contacts as $contact): ?>
-                <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer contact-item" 
+                <div class="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer contact-item flex items-center"
                     data-userid="<?= $contact['id'] ?>">
                     <div class="flex items-center">
                         <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
@@ -70,7 +85,7 @@ $contacts = $stmt->fetchAll();
         </div>
 
         <!-- Chat Area -->
-        <div class="flex-1 flex flex-col">
+        <div class="hidden md:flex flex-1 flex-col" id="chat-area">
             <!-- Chat Header -->
             <div class="p-4 bg-gray-50 border-b border-gray-200 flex items-center">
                 <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-bold">
