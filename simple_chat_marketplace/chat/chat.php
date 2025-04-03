@@ -7,15 +7,27 @@ if (!isLoggedIn()) {
     exit();
 }
 
-// Get current user data
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->execute([$_SESSION['user_id']]);
-$currentUser = $stmt->fetch();
+try {
+    // Get current user data
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $currentUser = $stmt->fetch();
 
-// Get all users except current user for contacts list
-$stmt = $pdo->prepare("SELECT id, username, profile_image FROM users WHERE id != ?");
-$stmt->execute([$_SESSION['user_id']]);
-$contacts = $stmt->fetchAll();
+    if (!$currentUser) {
+        throw new Exception("User not found");
+    }
+
+    // Get all users except current user for contacts list
+    $stmt = $pdo->prepare("SELECT id, username, profile_image FROM users WHERE id != ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $contacts = $stmt->fetchAll();
+} catch (PDOException $e) {
+    error_log("Database error: " . $e->getMessage());
+    die("Error loading chat data. Please try again later.");
+} catch (Exception $e) {
+    error_log("Application error: " . $e->getMessage());
+    die("Error loading user data. Please try again later.");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,7 +35,7 @@ $contacts = $stmt->fetchAll();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat - ChatMarket</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
